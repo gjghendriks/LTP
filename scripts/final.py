@@ -2,6 +2,7 @@ import spacy
 import sys
 import requests
 import re
+import copy
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en_core_web_sm")
@@ -90,9 +91,10 @@ def findSubject(question):
 # merges them
 # returns the doc
 def findNounPhrases(question):
-	for noun_phrase in list(question.noun_chunks):
+	newdoc = copy.deepcopy(question)
+	for noun_phrase in list(newdoc.noun_chunks):
 		noun_phrase.merge(noun_phrase.root.tag_, noun_phrase.root.lemma_, noun_phrase.root.ent_type_)
-	return question
+	return newdoc
 
 def analyze(question):	
 
@@ -107,8 +109,8 @@ def analyze(question):
 	log("\n\nFound subj:" + subj + " and prop:" + prop + '\n\n')
 
 	#update tokens to capture whole compound
-	findNounPhrases(question)
-	for token in question:
+	nounquestion = findNounPhrases(question)
+	for token in nounquestion:
 		log(token.text)
 		if(isinstance(subj, str) and re.search(subj, token.text)):
 			log("broadend match for subj from\t" + subj + "\tto\t" + token.text)
@@ -118,7 +120,7 @@ def analyze(question):
 			prop = token
 		
 
-	for token in question:
+	for token in nounquestion:
 		if(token.head.tag_ == "IN" and token.head.head == prop and token != subj):
 			proptext = prop.text + " " + token.head.text + " " + token.text
 

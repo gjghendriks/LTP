@@ -1,13 +1,13 @@
 Todo
 
 - combine our versions (stratos)
-- Add flags to program for: suprressing/enabling debug output (Gijs) + test
+- Add flags to program for: suprressing/enabling debug output (Gijs) 		DONE
 - from verb to noun bear - birth (Gijs) (nltk)
 - Add comments(!) + debug (everyone)
 - similarities ? (stratos)
 - multiple queries (Gijs)
 - make test set (+ answers) (george)
-- fix destruction of doc (Gijs)
+- fix destruction of doc (Gijs)												DONE
 - Add "" functionality for works of art etc.
 
 Heuristics to add:
