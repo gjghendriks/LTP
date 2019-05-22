@@ -2,7 +2,7 @@ Todo
 
 - combine our versions (stratos)
 - Add flags to program for: suprressing/enabling debug output (Gijs) 		DONE
-- Add heuristics to Gijs' version											
+- Add heuristics to Gijs' version (Gijs)
 - from verb to noun bear - birth (Gijs) (nltk)
 - Add comments(!) + debug (everyone)
 - similarities ? (stratos)
