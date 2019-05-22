@@ -1,8 +1,10 @@
 Todo
 
-- combine our versions
-- Add flags to program for: suprressing/enabling debug output
-
+- combine our versions (stratos)
+- Add flags to program for: suprressing/enabling debug output (Gijs)
+- similarities ?
+- multiple queries
+- make test set (+ answers) (george)
 
 
 
