@@ -8,6 +8,14 @@ nlp = spacy.load("en_core_web_sm")
 url = 'https://www.wikidata.org/w/api.php'
 entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', }
 propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'type':'property'}
+DEBUG = False;
+
+
+#used to print output only if the debug is on
+def log(s):
+	if(DEBUG):
+		print(s)
+		
 
 
 def printexamples():
@@ -32,13 +40,13 @@ def createQuery(ent, prop):
 	query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(ent) + " wdt:" + str(prop) + """ ?item.
 	SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 	}"""
-	print("\nGenerated following query: \n" + query)
+	log("\nGenerated following query: \n" + query)
 	return query
 
 
 def executeQuery(q):
 	SPARQLurl = 'https://query.wikidata.org/sparql'
-	print("\n\nexecuting query . . .\n\n")
+	log("\n\nexecuting query . . .\n\n")
 	data = requests.get(SPARQLurl, params={'query': q, 'format': 'json'}).json()
 	if(data):
 		for item in data['results']['bindings']:
@@ -56,13 +64,13 @@ def find(string, params):
 	if(json['search']):
 		ent = (json['search'][0])
 		if('description' in ent):
-			print("{}\t{}\t{}".format(ent['id'], ent['label'],ent['description']))
+			log("{}\t{}\t{}".format(ent['id'], ent['label'],ent['description']))
 			return ent
 		else:
-			print("{}\t{}".format(ent['id'], ent['label']))
+			log("{}\t{}".format(ent['id'], ent['label']))
 			return ent 
 	else:
-		print("Found no result in wikidata for '", string, "'")
+		log("Found no result in wikidata for '" + string+  "'")
 		return False
 
 
@@ -77,6 +85,7 @@ def findSubject(question):
 	return subject
 
 
+
 # finds the noun phrases in question
 # merges them
 # returns the doc
@@ -85,28 +94,27 @@ def findNounPhrases(question):
 		noun_phrase.merge(noun_phrase.root.tag_, noun_phrase.root.lemma_, noun_phrase.root.ent_type_)
 	return question
 
-def analyze(question):
-	
+def analyze(question):	
 
 	for token in question:
-		#print(token.text, "\t", token.lemma_, "\t", token.pos_, "\t", token.tag_, "\t", token.dep_, "\t\t", " head:\t", token.head)
-		print(token.text, "\t", token.dep_)
+		#log(token.text, "\t", token.lemma_, "\t", token.pos_, "\t", token.tag_, "\t", token.dep_, "\t\t", " head:\t", token.head)
+		log(token.text + "\t" + token.dep_)
 		if(token.dep_ == "nsubj" ):
 			prop = token.text
 		if(token.dep_ == "pobj"):
 			subj = token.text
 
-	print("\n\nFound subj:", subj, " and prop:", prop,'\n\n')
+	log("\n\nFound subj:" + subj + " and prop:" + prop + '\n\n')
 
 	#update tokens to capture whole compound
 	findNounPhrases(question)
 	for token in question:
-		print(token.text)
+		log(token.text)
 		if(isinstance(subj, str) and re.search(subj, token.text)):
-			print("broadend match for subj from\t", subj, "\tto\t", token.text)
+			log("broadend match for subj from\t" + subj + "\tto\t" + token.text)
 			subj = token
 		if(isinstance(prop, str) and re.search(prop, token.text)):
-			print("broadend match for prop from\t", prop,"\tto\t", token.text)
+			log("broadend match for prop from\t" + prop + "\tto\t" + token.text)
 			prop = token
 		
 
@@ -127,7 +135,21 @@ def analyze(question):
 	return
 
 
+# turn on debug output by the -d flag
+if(len(sys.argv) > 1):
+	if any("-d" in s for s in sys.argv):
+		DEBUG = True
+		print("Debug mode is on")
+	else:
+		print("Debug mode is off")
+	if any("-t" in s for s in sys.argv):
+		print("Testing with test set")
+		#todo implement this george.
+
+
+
 printexamples()
+
 
 
 # search for line/question
@@ -136,11 +158,8 @@ for line in sys.stdin:
 	doc = nlp(text)								#analyse question
 
 
-	# Analyze syntax
+	# Analyze syntax using Gijs' method
 	analyze(doc)
 
-	# Find named entities, phrases and concepts
-	#for entity in doc.ents:
-	#	print(entity.text, entity.label_)
 
 
