@@ -17,3 +17,4 @@ Question types to add:
 - What does .. do?
 - Where does .. come from?
 - album -> has part (From which album is Dancing Queen?)
+- yes/no questions (did ... )
