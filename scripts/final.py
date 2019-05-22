@@ -36,13 +36,15 @@ Example questions are:
 
 
 def createQuery(ent, prop):
-	ent = find(ent, entParams)['id']
-	prop = find(prop, propParams)['id']
-	query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(ent) + " wdt:" + str(prop) + """ ?item.
-	SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-	}"""
-	log("\nGenerated following query: \n" + query)
-	return query
+	ent = find(ent, entParams)
+	prop = find(prop, propParams)
+	for e in ent:
+		for p in prop:
+			query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(e['id']) + " wdt:" + str(p['id']) + """ ?item.
+			SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+			}"""
+			log("\nGenerated following query: \n" + query)
+			executeQuery(query)
 
 
 def executeQuery(q):
@@ -62,14 +64,15 @@ def executeQuery(q):
 def find(string, params):
 	params['search'] = string
 	json = requests.get(url,params).json()
+	#log(json['search'])
 	if(json['search']):
-		ent = (json['search'][0])
-		if('description' in ent):
-			log("{}\t{}\t{}".format(ent['id'], ent['label'],ent['description']))
-			return ent
-		else:
-			log("{}\t{}".format(ent['id'], ent['label']))
-			return ent 
+		ent = (json['search'])
+		for e in ent:
+			if('description' in ent):
+				log("{}\t{}\t{}".format(e['id'], e['label'],e['description']))
+			else:
+				log("{}\t{}".format(e['id'], e['label']))
+		return ent 
 	else:
 		log("Found no result in wikidata for '" + string+  "'")
 		return False
@@ -129,10 +132,10 @@ def analyze(question):
 	except NameError:
 		proptext = prop.text
 		proptext = re.sub('(the|The)', '', proptext)
-		executeQuery(createQuery(subj.text, proptext))
+		createQuery(subj.text, proptext)
 	else:
 		proptext = re.sub('(the|The)', '', proptext)
-		executeQuery(createQuery(subj.text, proptext))
+		createQuery(subj.text, proptext)
 
 	return
 
