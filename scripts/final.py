@@ -35,6 +35,8 @@ Example questions are:
 """)
 
 
+# creates and executes query
+# for each entity and property it can find with the find function
 def createQuery(ent, prop):
 	ent = find(ent, entParams)
 	prop = find(prop, propParams)
@@ -46,7 +48,7 @@ def createQuery(ent, prop):
 			log("\nGenerated following query: \n" + query)
 			executeQuery(query)
 
-
+# executes a query
 def executeQuery(q):
 	SPARQLurl = 'https://query.wikidata.org/sparql'
 	log("\n\nexecuting query . . .\n\n")
@@ -60,7 +62,7 @@ def executeQuery(q):
 
 
 #finds the first corresponding wikidata entity or property
-#TODO use named entitys here
+#TODO use named entitys here ?
 def find(string, params):
 	params['search'] = string
 	json = requests.get(url,params).json()
@@ -74,11 +76,12 @@ def find(string, params):
 				log("{}\t{}".format(e['id'], e['label']))
 		return ent 
 	else:
-		log("Found no result in wikidata for '" + string+  "'")
+		log("Found no result in wikidata for '" + string +  "'")
 		return False
 
 
 #returns the subject in question
+# not used atm
 def findSubject(question):
 	for w in question:
 		if w.dep_ == "nsubj":
@@ -99,8 +102,11 @@ def findNounPhrases(question):
 		noun_phrase.merge(noun_phrase.root.tag_, noun_phrase.root.lemma_, noun_phrase.root.ent_type_)
 	return newdoc
 
+# Gijs' version of the analyze
+# tries to analyze the question and construct a query
 def analyze(question):	
 
+	# for each word/token look for the nsubj and pobj
 	for token in question:
 		#log(token.text, "\t", token.lemma_, "\t", token.pos_, "\t", token.tag_, "\t", token.dep_, "\t\t", " head:\t", token.head)
 		log(token.text + "\t" + token.dep_)
@@ -111,10 +117,11 @@ def analyze(question):
 
 	log("\n\nFound subj:" + subj + " and prop:" + prop + '\n\n')
 
-	#update tokens to capture whole compound
+	# update tokens to capture whole compound noun phrases
 	nounquestion = findNounPhrases(question)
 	for token in nounquestion:
 		log(token.text)
+		# if token is a subj and found within broader token, then subj = token
 		if(isinstance(subj, str) and re.search(subj, token.text)):
 			log("broadend match for subj from\t" + subj + "\tto\t" + token.text)
 			subj = token
@@ -122,11 +129,14 @@ def analyze(question):
 			log("broadend match for prop from\t" + prop + "\tto\t" + token.text)
 			prop = token
 		
-
+	# append longer compounds to the property
+	# when "of" is included, stop until the subject.
 	for token in nounquestion:
 		if(token.head.tag_ == "IN" and token.head.head == prop and token != subj):
 			proptext = prop.text + " " + token.head.text + " " + token.text
 
+
+	#try to remove the "the" from property text
 	try:
 		proptext
 	except NameError:

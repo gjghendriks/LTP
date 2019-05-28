@@ -12,7 +12,7 @@ Todo
 - Add "" functionality for works of art etc.
 
 Heuristics to add:
-- 
+- use named entity to help seach
 
 Question types to add:
 - What does .. do?
