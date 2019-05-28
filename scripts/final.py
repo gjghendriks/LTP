@@ -13,6 +13,19 @@ entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', }
 propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'type':'property'}
 DEBUG = False		# debug is defaulted to false
 TESTMODE = False 	# test mode is defaulted to false
+ANSWERS = [] # list to keep track of all found answers
+
+#class to store answers url and label together
+class Answer:
+	def __init__(self, item):
+		for var in item :
+			if(var == "item"):
+				self.url = item[var]['value']
+			elif(var == "itemLabel"):
+				self.label = item[var]['value']
+
+	def show(self):
+		print(self.label , "\t\t" , self.url)
 
 
 #used to print output only if the debug is on
@@ -58,10 +71,12 @@ def executeQuery(q):
 	data = requests.get(SPARQLurl, params={'query': q, 'format': 'json'}).json()
 	if(data):
 		for item in data['results']['bindings']:
-			for var in item :
-				print('{}\t{}'.format(var,item[var]['value']))
+			ANSWERS.append(Answer(item))
 	else:
 		print("Found no results to query\nPlease try again\n")
+
+
+
 
 
 #finds the first corresponding wikidata entity or property
@@ -172,7 +187,7 @@ if(len(sys.argv) > 1):
 
 
 
-if(!TESTMODE):
+if(not TESTMODE):
 	printexamples()
 	# search for line/question
 	for line in sys.stdin:
@@ -182,7 +197,11 @@ if(!TESTMODE):
 
 		# Analyze syntax using Gijs' method
 		analyze(doc)
+		for item in ANSWERS:
+			item.show()
+		ANSWERS.clear()
 
 #testmode
 else:
-	
+	#read in the question file here
+	pass
