@@ -1,0 +1,21 @@
+Todo
+
+- combine our versions (stratos)
+- Add flags to program for: suprressing/enabling debug output (Gijs) 		DONE
+- Add heuristics to Gijs' version (Gijs)
+- from verb to noun bear - birth (Gijs) (nltk)
+- Add comments(!) + debug (everyone)
+- similarities ? (stratos)
+- multiple queries (Gijs)													DONE
+- make test set (+ answers) (george)
+- fix destruction of doc (Gijs)												DONE
+- Add "" functionality for works of art etc.
+
+Heuristics to add:
+- use named entity to help seach
+
+Question types to add:
+- What does .. do?
+- Where does .. come from?
+- album -> has part (From which album is Dancing Queen?)
+- yes/no questions (did ... )
