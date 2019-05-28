@@ -6,10 +6,13 @@ import copy
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en_core_web_sm")
-url = 'https://www.wikidata.org/w/api.php'
-entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', }
+url = 'https://www.wikidata.org/w/api.php' # URL for wikidata
+# parameters to find an entity
+entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', }		
+# paramters to find a property
 propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'type':'property'}
-DEBUG = False;
+DEBUG = False		# debug is defaulted to false
+TESTMODE = False 	# test mode is defaulted to false
 
 
 #used to print output only if the debug is on
@@ -150,31 +153,36 @@ def analyze(question):
 	return
 
 
-# turn on debug output by the -d flag
+
+
+# check for flags
 if(len(sys.argv) > 1):
+	# turn on debug output by the -d flag
 	if any("-d" in s for s in sys.argv):
 		DEBUG = True
 		print("Debug mode is on")
 	else:
 		print("Debug mode is off")
+	# turn on test mode when -t flag is found
+	# debug is turned off
 	if any("-t" in s for s in sys.argv):
+		TESTMODE = True
+		DEBUG = False
 		print("Testing with test set")
-		#todo implement this george.
 
 
 
-printexamples()
+if(!TESTMODE):
+	printexamples()
+	# search for line/question
+	for line in sys.stdin:
+		text = line.rstrip()						# grab line
+		doc = nlp(text)								#analyse question
 
 
+		# Analyze syntax using Gijs' method
+		analyze(doc)
 
-# search for line/question
-for line in sys.stdin:
-	text = line.rstrip()						# grab line
-	doc = nlp(text)								#analyse question
-
-
-	# Analyze syntax using Gijs' method
-	analyze(doc)
-
-
-
+#testmode
+else:
+	
