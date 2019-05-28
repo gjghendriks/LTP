@@ -3,6 +3,7 @@ import sys
 import requests
 import re
 import copy
+import csv
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en_core_web_sm")
@@ -14,6 +15,8 @@ propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'ty
 DEBUG = False		# debug is defaulted to false
 TESTMODE = False 	# test mode is defaulted to false
 ANSWERS = [] # list to keep track of all found answers
+TOTAL = 0
+CORRECT = 0
 
 #class to store answers url and label together
 class Answer:
@@ -56,13 +59,14 @@ Example questions are:
 def createQuery(ent, prop):
 	ent = find(ent, entParams)
 	prop = find(prop, propParams)
-	for e in ent:
-		for p in prop:
-			query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(e['id']) + " wdt:" + str(p['id']) + """ ?item.
-			SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-			}"""
-			log("\nGenerated following query: \n" + query)
-			executeQuery(query)
+	if(ent and prop):
+		for e in ent:
+			for p in prop:
+				query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(e['id']) + " wdt:" + str(p['id']) + """ ?item.
+				SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+				}"""
+				log("\nGenerated following query: \n" + query)
+				executeQuery(query)
 
 # executes a query
 def executeQuery(q):
@@ -123,7 +127,8 @@ def findNounPhrases(question):
 # Gijs' version of the analyze
 # tries to analyze the question and construct a query
 def analyze(question):	
-
+	subj = ""
+	prop = ""
 	# for each word/token look for the nsubj and pobj
 	for token in question:
 		#log(token.text, "\t", token.lemma_, "\t", token.pos_, "\t", token.tag_, "\t", token.dep_, "\t\t", " head:\t", token.head)
@@ -168,8 +173,6 @@ def analyze(question):
 	return
 
 
-
-
 # check for flags
 if(len(sys.argv) > 1):
 	# turn on debug output by the -d flag
@@ -204,4 +207,29 @@ if(not TESTMODE):
 #testmode
 else:
 	#read in the question file here
-	pass
+	with open("""..\\resources\\all_questions_and_answers.tsv""") as tsvfile:
+		reader = reader = csv.reader(tsvfile, delimiter='\t')
+		# file contains
+		#	row[0]: Question
+		#	row[1]: URI
+		#	row[2]: Answer
+		# 	row[..]: more answers (check with len(row))
+		questionCount = 0
+		for row in reader:
+			questionCount += 1
+			if(questionCount > 10):					# set amount of questions you want to test here
+				break;
+			question = row[0]
+			URI = row[1]
+
+			doc = nlp(question)
+			analyze(doc)
+			for item in ANSWERS:
+				if(item.url == URI):
+					print(questionCount, " was correct!")
+					CORRECT += 1
+
+			print(questionCount, "was incorrect!")
+			TOTAL += 1
+
+		print("From the ", str(TOTAL), " questions, ", CORRECT, " where correct.")
