@@ -6,7 +6,7 @@ import copy
 import csv
 
 # Load English tokenizer, tagger, parser, NER and word vectors
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load("en")
 url = 'https://www.wikidata.org/w/api.php' # URL for wikidata
 # parameters to find an entity
 entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', }		
