@@ -8,14 +8,14 @@ Todo
 - from verb to noun bear - birth (nltk)							(Stratos)
 - similarities ? 												(Stratos)
 - Add "" functionality for works of art etc.					(George)
-- fix path to test file for linux								(Gijs)
+- fix path to test file for linux								(Gijs)			DONE
 - clean up code													(Gijs/Stratos)
 - identify question types to add/answer							(George)
-- multiple queries 												(Gijs)		DONE
-- make test set (+ answers) 									(Gijs)		DONE
-- fix destruction of doc 										(Gijs)		DONE
-- Add flags to program for: suprressing/enabling debug output 	(Gijs) 		DONE
-- combine our versions 											(Stratos)	DONE
+- multiple queries 												(Gijs)			DONE
+- make test set (+ answers) 									(Gijs)			DONE
+- fix destruction of doc 										(Gijs)			DONE
+- Add flags to program for: suprressing/enabling debug output 	(Gijs) 			DONE
+- combine our versions 											(Stratos)		DONE
 - output to file unanswered questions							(later)
 
 Heuristics to add:

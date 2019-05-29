@@ -4,6 +4,8 @@ import requests
 import re
 import copy
 import csv
+import platform
+import os
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en")
@@ -280,7 +282,11 @@ if(not TESTMODE):
 #testmode
 else:
 	#read in the question file here
-	with open("""..\\resources\\all_questions_and_answers.tsv""") as tsvfile:
+	if(platform.system() == "Linux"):
+		filename = """../resources/all_questions_and_answers.tsv"""
+	else:
+		filename = """..\\resources\\all_questions_and_answers.tsv"""
+	with open(filename) as tsvfile:
 		reader = reader = csv.reader(tsvfile, delimiter='\t')
 		# file contains
 		#	row[0]: Question
