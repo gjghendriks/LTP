@@ -126,7 +126,7 @@ def findNounPhrases(question):
 
 # Gijs' version of the analyze
 # tries to analyze the question and construct a query
-def analyze(question):	
+def analyze(question):
 	subj = ""
 	prop = ""
 	# for each word/token look for the nsubj and pobj
