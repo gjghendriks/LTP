@@ -146,21 +146,12 @@ def analyzeSecondary(result):
 		propParams['search'] = "has part"
 	if propParams['search'] == "real name":
 		propParams['search'] = "birth name"
-	prop_search_results = requests.get(url=url, params=propParams).json()
-	
-	# Searching for particular entities based on the query:
-	entities_search_results = requests.get(url=url, params=entParams).json()
 	
 	# If no entities are found return error message, else return the
 	# top entity and property results provided by the wikidata API:
-	answer = []
-	if len(entities_search_results['search']) == 0:
-		print("The query returned no results. Please try again!")
-	else:
-		top_result = entities_search_results['search'][0]
-		prop_top_result = prop_search_results['search'][0]
-		answer = createSecondaryQuery(top_result, prop_top_result)
-	return answer
+	
+	createQuery(entParams['search'] , propParams['search'] )
+	
 
 
 
@@ -307,15 +298,12 @@ if(not TESTMODE):
 		analyze(doc)
 		
 		#Analyse using secondary method
-		if not ANSWERS:
-			a=[]
-			a = analyzeSecondary(doc)
-			for item in a:
-				print(item)
-		else:
-			for item in ANSWERS:
-				item.show()
-			ANSWERS.clear()
+		
+		analyzeSecondary(doc)
+	
+		for item in ANSWERS:
+			item.show()
+		ANSWERS.clear()
 
 #testmode
 else:
