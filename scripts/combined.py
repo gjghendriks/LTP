@@ -281,7 +281,7 @@ if(not TESTMODE):
 
 #testmode
 else:
-	#read in the question file here
+	#read in the question file here depending on platform
 	if(platform.system() == "Linux"):
 		filename = """../resources/all_questions_and_answers.tsv"""
 	else:
