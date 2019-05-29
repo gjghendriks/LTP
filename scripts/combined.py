@@ -53,32 +53,6 @@ Example questions are:
   What is the birth place of B. B. King?
 """)
 
-#Returns a list of the answers yielded by the query search
-def find_answer(query):
-	url2 = 'https://query.wikidata.org/sparql'
-	data = requests.get(url = url2,
-		params = {'query': query, 'format': 'json'}).json()
-	new_list = []
-	for item in data['results']['bindings']:
-		#print(item)
-		for var in item :
-			new_list.append(item[var]['value'])
-	return new_list
-
-#Creates a Query based on the secondary analysing method
-def createSecondaryQuery(ent, prop):
-	query1 = '''
-				SELECT ?itemLabel''' + ''' WHERE {
-					wd:''' + ent['id'] + ''' wdt:''' + prop['id'] + ''' ?item''' + '''.
-
-				SERVICE wikibase:label {
-					bd:serviceParam wikibase:language "en" . 
-				}
-			}'''
-	answer = find_answer(query1)
-	return answer
-	
-
 #When given some input, it links it to the closest WikiData potential synonym
 def fixer(string):
 	if string == 'die':
@@ -147,9 +121,7 @@ def analyzeSecondary(result):
 	if propParams['search'] == "real name":
 		propParams['search'] = "birth name"
 	
-	# If no entities are found return error message, else return the
-	# top entity and property results provided by the wikidata API:
-	
+	# Use the same method as before to find answers
 	createQuery(entParams['search'] , propParams['search'] )
 	
 
