@@ -4,7 +4,7 @@ Todo
 - update git repo												(Gijs) 
 - seperate answers by \t										(Gijs)
 - run test mode all the way 									(Gijs)
-- check answers for duplicates/expand analyze					(Stratos)
+- check answers for duplicates/expand analyze					(Stratos)		DONE
 - from verb to noun bear - birth (nltk)							(Stratos)
 - similarities ? 												(Stratos)
 - Add "" functionality for works of art etc.					(George)
