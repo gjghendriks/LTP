@@ -143,6 +143,19 @@ def createQuery(ent, prop):
 				log("\nGenerated following query: \n" + query)
 				executeQuery(query)
 
+#Checks for existing answers and returns 1 if there are duplicates and 0 if not
+def answerExists(foundItem):
+	for item in ANSWERS:
+		for var in foundItem:
+			if (var == "item") and (foundItem[var]['value'] == item.url):
+				return 1
+			elif (var == "itemLabel") and (foundItem[var]['value'] == item.label):
+				return 1
+			else:
+				continue
+	return 0
+				
+
 # executes a query
 def executeQuery(q):
 	SPARQLurl = 'https://query.wikidata.org/sparql'
@@ -150,7 +163,8 @@ def executeQuery(q):
 	data = requests.get(SPARQLurl, params={'query': q, 'format': 'json'}).json()
 	if(data):
 		for item in data['results']['bindings']:
-			ANSWERS.append(Answer(item))
+			if not answerExists(item):
+				ANSWERS.append(Answer(item))
 	else:
 		print("Found no results to query\nPlease try again\n")
 
