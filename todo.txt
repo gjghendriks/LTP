@@ -2,9 +2,9 @@ Todo
 
 - Start report													(Gijs)
 - update git repo												(Gijs) 
-- seperate answers by \t										(Gijs)
+- seperate answers by \t										(Gijs)			DONE
 - run test mode all the way 									(Gijs)
-- finish testmode(checking answers) 							(Gijs)
+- finish testmode(checking answers) 							(Gijs)			DONE
 - avoid the deepcopy to optimize performance
 - check answers for duplicates/expand analyze					(Stratos)		DONE
 - from verb to noun bear - birth (nltk)							(Stratos)

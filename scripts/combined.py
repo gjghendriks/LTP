@@ -52,16 +52,16 @@ def log(s):
 def printexamples():
   print("""
 Example questions are:
-  What is the birth date of Dave Grohl?
-  The birth date of Dave Grohl was when?
-  What are the parts of guitar?
-  What are the genres of tame impala?
-  What is the birth name of Freddy mercury?
-  What was the cause of death of Michael Jackson?
-  What was the country of origin of intergalactic lovers?
-  When was the date of death of mozart?
-  What is the official website of Foals?
-  What is the birth place of B. B. King?
+	What is the birth date of Dave Grohl?
+	The birth date of Dave Grohl was when?
+	What are the parts of guitar?
+	What are the genres of tame impala?
+	What is the birth name of Freddy mercury?
+	What was the cause of death of Michael Jackson?
+	What was the country of origin of intergalactic lovers?
+	When was the date of death of mozart?
+	What is the official website of Foals?
+	What is the birth place of B. B. King?
 """)
 
 #When given some input, it links it to the closest WikiData potential synonym
@@ -236,6 +236,7 @@ def findSubject(question):
 # finds the noun phrases in question
 # merges them
 # returns the doc
+# TODO: optimize this, by far slowest part of the program
 def findNounPhrases(question):
 	log("Starting deepcopy")
 	newdoc = copy.deepcopy(question)
@@ -301,7 +302,7 @@ def testmode():
 	if(platform.system() == "Linux"):
 		filename = """../resources/all_questions_and_answers.tsv"""
 	else:
-		filename = """..\\resources\\all_questions_and_answers.tsv"""
+		filename = """resources\\all_questions_and_answers.tsv"""
 		#open file
 	with open(filename) as tsvfile:
 		reader = reader = csv.reader(tsvfile, delimiter='\t')
@@ -322,12 +323,19 @@ def testmode():
 			# print amount of correct
 			doc = nlp(question)
 			analyze(doc)
+			analyzeSecondary(doc)
+			global CORRECT
+			global TOTAL
 			for item in ANSWERS:
+				score = 0;
+				#check if URI is the same
 				if(item.url == URI):
-					print(questionCount, " was correct!")
-					CORRECT += 1
+					CORRECT += 0.5
+					for answer in item.label:
+						if(answer == row[2]):
+							CORRECT += 0.5
 
-			print(questionCount, "was incorrect!")
+			print(questionCount, "cumalative score: ", CORRECT)
 			TOTAL += 1
 
 		print("From the ", str(TOTAL), " questions, ", CORRECT, " where correct.")
