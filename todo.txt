@@ -4,6 +4,8 @@ Todo
 - update git repo												(Gijs) 
 - seperate answers by \t										(Gijs)
 - run test mode all the way 									(Gijs)
+- finish testmode(checking answers) 							(Gijs)
+- avoid the deepcopy to optimize performance
 - check answers for duplicates/expand analyze					(Stratos)		DONE
 - from verb to noun bear - birth (nltk)							(Stratos)
 - similarities ? 												(Stratos)
@@ -17,6 +19,7 @@ Todo
 - Add flags to program for: suprressing/enabling debug output 	(Gijs) 			DONE
 - combine our versions 											(Stratos)		DONE
 - output to file unanswered questions							(later)
+- Make loading bar/busy sign in interface						(optional)
 
 Heuristics to add:
 - use named entity to help seach								(George)

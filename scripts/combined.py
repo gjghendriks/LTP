@@ -11,7 +11,7 @@ import os
 nlp = spacy.load("en")
 url = 'https://www.wikidata.org/w/api.php' # URL for wikidata
 # parameters to find an entity
-entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', }		
+entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json' }		
 # paramters to find a property
 propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'type':'property'}
 DEBUG = False		# debug is defaulted to false
@@ -22,15 +22,24 @@ CORRECT = 0
 
 #class to store answers url and label together
 class Answer:
-	def __init__(self, item):
-		for var in item :
-			if(var == "item"):
-				self.url = item[var]['value']
-			elif(var == "itemLabel"):
-				self.label = item[var]['value']
+	#def __init__(self, item):
+	#	for var in item :
+	#		if(var == "item"):
+	#			self.url = item[var]['value']
+	#		elif(var == "itemLabel"):
+	#			self.label = item[var]['value']
+
+
+	def __init__(self, labels, url):
+		self.label = labels
+		self.url = url
 
 	def show(self):
-		print(self.label , "\t\t" , self.url)
+		print(self.url, end = "\t")
+		for item in self.label:
+			print(item, end = "\t")
+		print("")
+		
 
 
 #used to print output only if the debug is on
@@ -78,20 +87,21 @@ def fixer(string):
 #Secondary version of analyze
 def analyzeSecondary(result):
 	k = ""
-	
+	entityString = ""
+	propertyString = ""
+
+	#Look for entities based on their main characteristics as the subjects of a sentence
 	for w in result:
-		#Look for entities based on their main characteristics as the subjects of a sentence
 		if w.pos_ == "PROPN" or ((w.ent_type_ == "PERSON" or w.ent_type_ == "ORG") and w.text != "'s"):
 			subject=[]
 			for d in w.subtree:
 				if d.tag_ == "POS":
 					continue
-				entParams['search'].append(d.text)
+				entityString += d.text
 
-	#entParams['search'] = " ".join(subject)
 	
-	for w in result:
-	
+	#Look for property
+	for w in result:	
 	# What is the X of Y// Who is the X of Y // When is the X of Y
 	# What is X's Y // Who is X's Y // When is X's Y
 		if w.lemma_ == 'when':
@@ -113,19 +123,20 @@ def analyzeSecondary(result):
 					subject1.append(d.lemma_)
 				if d.pos_ == 'VERB' and (d.lemma_ != 'be' and d.lemma_ != 'do'):
 					subject1.append(k + fixer(d.lemma_))
-	propParams['search'] = " ".join(subject1)
+	propertyString = " ".join(subject1)
 	
 	
 	# Searching for particular properties based on the query
 	# (some properties need "special handling" with an if-statement,
 	# since they can not be found via a simple search in the wikidata API):
-	if propParams['search'] == "member":
-		propParams['search'] = "has part"
-	if propParams['search'] == "real name":
-		propParams['search'] = "birth name"
+	if propertyString == "member":
+		propertyString = "has part"
+	if propertyString == "real name":
+		propertyString = "birth name"
 	
 	# Use the same method as before to find answers
-	createQuery(entParams['search'] , propParams['search'] )
+	if(entityString and propertyString):
+		createQuery(entityString, propertyString)
 	
 
 
@@ -141,33 +152,54 @@ def createQuery(ent, prop):
 				query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(e['id']) + " wdt:" + str(p['id']) + """ ?item.
 				SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 				}"""
-				log("\nGenerated following query: \n" + query)
-				executeQuery(query)
+				log("\nGenerated following query:")
+				log(e['label'])
+				log(p['label'])
+				log(query)
+				executeQuery(query, e['id'])
 
 			
 
 # executes a query
-def executeQuery(q):
+def executeQuery(q, entityID):
+	#define url
 	SPARQLurl = 'https://query.wikidata.org/sparql'
-	log("\n\nexecuting query . . .\n\n")
+	log("\nexecuting query . . .\n")
+	# retrieve data in json
 	data = requests.get(SPARQLurl, params={'query': q, 'format': 'json'}).json()
 	if(data):
+		answerList = [] 
+		log("data length is = " + str(len(data)))
+		#log(data)
+		# for each answer, append in the answerList
 		for item in data['results']['bindings']:
-			if not answerExists(item):
-				ANSWERS.append(Answer(item))
+			for var in item:
+				if(var == "itemLabel"):
+					log(item[var]['value'])
+					answerList.append(item[var]['value'])
+		#when all answers are found
+		# make Answer object and check if it does not exists yet
+		a = Answer(answerList, "http://www.wikidata.org/entity/" + str(entityID))
+		# Append the answer if it is not found yet
+		# and only when an answer is found
+
+		log(answerExists(a))
+		log(answerList)
+		if (not answerExists(a)) and  (answerList):
+			log("answer appended")
+			ANSWERS.append(a)
 	else:
 		print("Found no results to query\nPlease try again\n")
 
 #Checks for existing answers and returns 1 if there are duplicates and 0 if not
 def answerExists(foundItem):
+	# for each answer found so far
 	for item in ANSWERS:
-		for var in foundItem:
-			if (var == "item") and (foundItem[var]['value'] == item.url):
-				return 1
-			elif (var == "itemLabel") and (foundItem[var]['value'] == item.label):
-				return 1
-			else:
-				continue
+		for iAnswer in item.label:
+			for answer in foundItem.label:
+				if (answer == iAnswer):
+					log("Answer was already found, not adding it to ANSWERS")
+					return 1
 	return 0
 
 
@@ -205,6 +237,7 @@ def findSubject(question):
 # merges them
 # returns the doc
 def findNounPhrases(question):
+	log("Starting deepcopy")
 	newdoc = copy.deepcopy(question)
 	for noun_phrase in list(newdoc.noun_chunks):
 		noun_phrase.merge(noun_phrase.root.tag_, noun_phrase.root.lemma_, noun_phrase.root.ent_type_)
@@ -225,6 +258,9 @@ def analyze(question):
 			subj = token.text
 
 	log("\n\nFound subj:" + subj + " and prop:" + prop + '\n\n')
+	# found no nsubj and pobj so break out of analyze
+	if(not (subj and prop)):
+		return
 
 	# update tokens to capture whole compound noun phrases
 	nounquestion = findNounPhrases(question)
@@ -243,6 +279,7 @@ def analyze(question):
 	for token in nounquestion:
 		if(token.head.tag_ == "IN" and token.head.head == prop and token != subj):
 			proptext = prop.text + " " + token.head.text + " " + token.text
+			log("property has now become " + proptext)
 
 
 	#try to remove the "the" from property text
@@ -321,18 +358,20 @@ if(not TESTMODE):
 		text = line.rstrip()						# grab line
 		doc = nlp(text)								#analyse question
 
-
-		# Analyze syntax using Gijs' method
-		analyze(doc)
+		if(len(doc) > 2):
+			# Analyze syntax using Gijs' method
+			analyze(doc)
+			
+			#Analyse using secondary method
+			analyzeSecondary(doc)
 		
-		#Analyse using secondary method
-		analyzeSecondary(doc)
-	
-		#show each answer
-		for item in ANSWERS:
-			item.show()
-		#clean up
-		ANSWERS.clear()
+			#show each answer
+			for item in ANSWERS:
+				item.show()
+			#clean up
+			ANSWERS.clear()
+		else:
+			print("Question is too short")
 
 #testmode
 else:
