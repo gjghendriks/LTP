@@ -86,8 +86,9 @@ def analyzeSecondary(result):
 			for d in w.subtree:
 				if d.tag_ == "POS":
 					continue
-				subject.append(d.text)
-	entParams['search'] = " ".join(subject)
+				entParams['search'].append(d.text)
+
+	#entParams['search'] = " ".join(subject)
 	
 	for w in result:
 	
@@ -143,18 +144,7 @@ def createQuery(ent, prop):
 				log("\nGenerated following query: \n" + query)
 				executeQuery(query)
 
-#Checks for existing answers and returns 1 if there are duplicates and 0 if not
-def answerExists(foundItem):
-	for item in ANSWERS:
-		for var in foundItem:
-			if (var == "item") and (foundItem[var]['value'] == item.url):
-				return 1
-			elif (var == "itemLabel") and (foundItem[var]['value'] == item.label):
-				return 1
-			else:
-				continue
-	return 0
-				
+			
 
 # executes a query
 def executeQuery(q):
@@ -167,6 +157,18 @@ def executeQuery(q):
 				ANSWERS.append(Answer(item))
 	else:
 		print("Found no results to query\nPlease try again\n")
+
+#Checks for existing answers and returns 1 if there are duplicates and 0 if not
+def answerExists(foundItem):
+	for item in ANSWERS:
+		for var in foundItem:
+			if (var == "item") and (foundItem[var]['value'] == item.url):
+				return 1
+			elif (var == "itemLabel") and (foundItem[var]['value'] == item.label):
+				return 1
+			else:
+				continue
+	return 0
 
 
 #finds the first corresponding wikidata entity or property
@@ -257,6 +259,44 @@ def analyze(question):
 	return
 
 
+def testmode():
+	#read in the question file here depending on platform
+	if(platform.system() == "Linux"):
+		filename = """../resources/all_questions_and_answers.tsv"""
+	else:
+		filename = """..\\resources\\all_questions_and_answers.tsv"""
+		#open file
+	with open(filename) as tsvfile:
+		reader = reader = csv.reader(tsvfile, delimiter='\t')
+		# file contains
+		#	row[0]: Question
+		#	row[1]: URI
+		#	row[2]: Answer
+		# 	row[..]: more answers (check with len(row))
+		questionCount = 0
+		for row in reader:
+			questionCount += 1
+			if(questionCount > 10):					# set amount of questions you want to test here
+				break;
+			question = row[0]
+			URI = row[1]
+			
+			#analyze each question
+			# print amount of correct
+			doc = nlp(question)
+			analyze(doc)
+			for item in ANSWERS:
+				if(item.url == URI):
+					print(questionCount, " was correct!")
+					CORRECT += 1
+
+			print(questionCount, "was incorrect!")
+			TOTAL += 1
+
+		print("From the ", str(TOTAL), " questions, ", CORRECT, " where correct.")
+	
+
+
 # check for flags
 if(len(sys.argv) > 1):
 	# turn on debug output by the -d flag
@@ -270,7 +310,7 @@ if(len(sys.argv) > 1):
 	if any("-t" in s for s in sys.argv):
 		TESTMODE = True
 		DEBUG = False
-		print("Testing with test set")
+		print("Testing mode is on")
 
 
 
@@ -286,43 +326,14 @@ if(not TESTMODE):
 		analyze(doc)
 		
 		#Analyse using secondary method
-		
 		analyzeSecondary(doc)
 	
+		#show each answer
 		for item in ANSWERS:
 			item.show()
+		#clean up
 		ANSWERS.clear()
 
 #testmode
 else:
-	#read in the question file here depending on platform
-	if(platform.system() == "Linux"):
-		filename = """../resources/all_questions_and_answers.tsv"""
-	else:
-		filename = """..\\resources\\all_questions_and_answers.tsv"""
-	with open(filename) as tsvfile:
-		reader = reader = csv.reader(tsvfile, delimiter='\t')
-		# file contains
-		#	row[0]: Question
-		#	row[1]: URI
-		#	row[2]: Answer
-		# 	row[..]: more answers (check with len(row))
-		questionCount = 0
-		for row in reader:
-			questionCount += 1
-			if(questionCount > 10):					# set amount of questions you want to test here
-				break;
-			question = row[0]
-			URI = row[1]
-
-			doc = nlp(question)
-			analyze(doc)
-			for item in ANSWERS:
-				if(item.url == URI):
-					print(questionCount, " was correct!")
-					CORRECT += 1
-
-			print(questionCount, "was incorrect!")
-			TOTAL += 1
-
-		print("From the ", str(TOTAL), " questions, ", CORRECT, " where correct.")
+	testmode()
