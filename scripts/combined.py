@@ -237,16 +237,17 @@ def findSubject(question):
 # merges them
 # returns the doc
 # TODO: optimize this, by far slowest part of the program
-def findNounPhrases(question):
+def findNounPhrases(text):
 	log("Starting deepcopy")
-	newdoc = copy.deepcopy(question)
+	newdoc = nlp(text)
+	#newdoc = copy.deepcopy(question)
 	for noun_phrase in list(newdoc.noun_chunks):
 		noun_phrase.merge(noun_phrase.root.tag_, noun_phrase.root.lemma_, noun_phrase.root.ent_type_)
 	return newdoc
 	
 # Gijs' version of the analyze
 # tries to analyze the question and construct a query
-def analyze(question):
+def analyze(question, text):
 	subj = ""
 	prop = ""
 	# for each word/token look for the nsubj and pobj
@@ -264,7 +265,7 @@ def analyze(question):
 		return
 
 	# update tokens to capture whole compound noun phrases
-	nounquestion = findNounPhrases(question)
+	nounquestion = findNounPhrases(text)
 	for token in nounquestion:
 		log(token.text)
 		# if token is a subj and found within broader token, then subj = token
@@ -322,7 +323,7 @@ def testmode():
 			#analyze each question
 			# print amount of correct
 			doc = nlp(question)
-			analyze(doc)
+			analyze(doc, question)
 			analyzeSecondary(doc)
 			global CORRECT
 			global TOTAL
@@ -368,7 +369,7 @@ if(not TESTMODE):
 
 		if(len(doc) > 2):
 			# Analyze syntax using Gijs' method
-			analyze(doc)
+			analyze(doc, text)
 			
 			#Analyse using secondary method
 			analyzeSecondary(doc)

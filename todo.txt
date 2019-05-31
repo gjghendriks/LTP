@@ -1,25 +1,26 @@
 Todo
 
-- Start report													(Gijs)
-- update git repo												(Gijs) 
-- seperate answers by \t										(Gijs)			DONE
-- run test mode all the way 									(Gijs)
-- finish testmode(checking answers) 							(Gijs)			DONE
-- avoid the deepcopy to optimize performance
-- check answers for duplicates/expand analyze					(Stratos)		DONE
-- from verb to noun bear - birth (nltk)							(Stratos)
-- similarities ? 												(Stratos)
-- Add "" functionality for works of art etc.					(George)
-- fix path to test file for linux								(Gijs)			DONE
-- clean up code													(Gijs/Stratos)
-- identify question types to add/answer							(George)
-- multiple queries 												(Gijs)			DONE
-- make test set (+ answers) 									(Gijs)			DONE
-- fix destruction of doc 										(Gijs)			DONE
-- Add flags to program for: suprressing/enabling debug output 	(Gijs) 			DONE
-- combine our versions 											(Stratos)		DONE
-- output to file unanswered questions							(later)
-- Make loading bar/busy sign in interface						(optional)
+
+- run test mode all the way 									Gijs
+- avoid the deepcopy to optimize performance					Gijs
+- from verb to noun bear - birth (nltk)							Stratos
+- similarities ? 												Stratos
+- Add "" functionality for works of art etc.					George
+- identify question types to add/answer							George
+- combine our versions 											Stratos			DONE
+- check answers for duplicates/expand analyze					Stratos			DONE
+- clean up code													Gijs/Stratos	DONE
+- Start report													Gijs			DONE
+- update git repo												Gijs 			DONE
+- seperate answers by \t										Gijs			DONE
+- fix path to test file for linux								Gijs			DONE
+- finish testmode(checking answers) 							Gijs			DONE
+- multiple queries 												Gijs			DONE
+- make test set (+ answers) 									Gijs			DONE
+- fix destruction of doc 										Gijs			DONE
+- Add flags to program for: suprressing/enabling debug output 	Gijs			DONE
+- output to file unanswered questions							later
+- Make loading bar/busy sign in interface						optional
 
 Heuristics to add:
 - use named entity to help seach								(George)
