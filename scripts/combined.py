@@ -242,7 +242,7 @@ def findSubject(question):
 # returns the doc
 # TODO: optimize this, by far slowest part of the program
 def findNounPhrases(text):
-	log("Starting deepcopy")
+	log("Finding noun phrases")
 	newdoc = nlp(text)
 	#newdoc = copy.deepcopy(question)
 	for noun_phrase in list(newdoc.noun_chunks):
