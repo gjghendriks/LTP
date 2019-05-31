@@ -16,9 +16,10 @@ entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json' }
 propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'type':'property'}
 DEBUG = False		# debug is defaulted to false
 TESTMODE = False 	# test mode is defaulted to false
-ANSWERS = [] # list to keep track of all found answers
-TOTAL = 0
-CORRECT = 0
+ANSWERS = [] 		# list to keep track of all found answers
+TOTAL = 0			# keeps track of how many questions are asked
+CORRECT = 0			# keeps track of how many questions are answered correctly
+TESTAMOUNT = 805	# max amount of questions that will be tested in test mode
 
 #class to store answers url and label together
 class Answer:
@@ -315,7 +316,7 @@ def testmode():
 		questionCount = 0
 		for row in reader:
 			questionCount += 1
-			if(questionCount > 10):					# set amount of questions you want to test here
+			if(questionCount > int(TESTAMOUNT)):
 				break;
 			question = row[0]
 			URI = row[1]
@@ -356,6 +357,9 @@ if(len(sys.argv) > 1):
 	if any("-t" in s for s in sys.argv):
 		TESTMODE = True
 		DEBUG = False
+		# if a number is given after the -t flag, set that to be the max test questions
+		if(sys.argv[sys.argv.index("-t") + 1]):
+			TESTAMOUNT = sys.argv[sys.argv.index("-t") + 1]
 		print("Testing mode is on")
 
 

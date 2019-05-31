@@ -2,7 +2,6 @@ Todo
 
 
 - run test mode all the way 									Gijs
-- avoid the deepcopy to optimize performance					Gijs
 - from verb to noun bear - birth (nltk)							Stratos
 - similarities ? 												Stratos
 - Add "" functionality for works of art etc.					George
@@ -10,6 +9,7 @@ Todo
 - combine our versions 											Stratos			DONE
 - check answers for duplicates/expand analyze					Stratos			DONE
 - clean up code													Gijs/Stratos	DONE
+- avoid the deepcopy to optimize performance					Gijs			DONE
 - Start report													Gijs			DONE
 - update git repo												Gijs 			DONE
 - seperate answers by \t										Gijs			DONE
