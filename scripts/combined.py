@@ -99,19 +99,20 @@ def analyzeSecondary(result):
 			for d in w.subtree:
 				if d.tag_ == "POS":
 					continue
-				entityString += d.text
+				subject.append(d.text)
+	entityString = " ".join(subject)
 
 	
 	#Look for property
 	for w in result:	
 	# What is the X of Y// Who is the X of Y // When is the X of Y
 	# What is X's Y // Who is X's Y // When is X's Y
-		subject1=[]
 		if w.lemma_ == 'when':
 			k = 'date of '
 		if w.lemma_ == 'where':
 			k = 'place of '
 		if w.pos_ == 'VERB':
+			subject1=[]
 			for d in w.subtree:
 				if ((d.pos_ == 'NOUN' and d.nbor().tag_ == 'IN') or
 					(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'IN') or
