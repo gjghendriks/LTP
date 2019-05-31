@@ -87,6 +87,7 @@ def fixer(string):
 
 #Secondary version of analyze
 def analyzeSecondary(result):
+	log("Secondary analyze")
 	k = ""
 	entityString = ""
 	propertyString = ""
@@ -105,12 +106,12 @@ def analyzeSecondary(result):
 	for w in result:	
 	# What is the X of Y// Who is the X of Y // When is the X of Y
 	# What is X's Y // Who is X's Y // When is X's Y
+		subject1=[]
 		if w.lemma_ == 'when':
 			k = 'date of '
 		if w.lemma_ == 'where':
 			k = 'place of '
 		if w.pos_ == 'VERB':
-			subject1=[]
 			for d in w.subtree:
 				if ((d.pos_ == 'NOUN' and d.nbor().tag_ == 'IN') or
 					(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'IN') or
@@ -138,6 +139,8 @@ def analyzeSecondary(result):
 	# Use the same method as before to find answers
 	if(entityString and propertyString):
 		createQuery(entityString, propertyString)
+	else:
+		log("Did not find entityString and propertyString")
 	
 
 
@@ -263,6 +266,7 @@ def analyze(question, text):
 	log("\n\nFound subj:" + subj + " and prop:" + prop + '\n\n')
 	# found no nsubj and pobj so break out of analyze
 	if(not (subj and prop)):
+		log("Did not find subj and prop")
 		return
 
 	# update tokens to capture whole compound noun phrases
@@ -358,7 +362,8 @@ if(len(sys.argv) > 1):
 		TESTMODE = True
 		DEBUG = False
 		# if a number is given after the -t flag, set that to be the max test questions
-		if(sys.argv[sys.argv.index("-t") + 1]):
+		# else defaulted to max
+		if(len(sys.argv) >= 3):
 			TESTAMOUNT = sys.argv[sys.argv.index("-t") + 1]
 		print("Testing mode is on")
 
