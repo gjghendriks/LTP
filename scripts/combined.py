@@ -91,54 +91,61 @@ def analyzeSecondary(result):
 	k = ""
 	entityString = ""
 	propertyString = ""
+	subject = []
+	subject1 = []
+	
+	if result[0].lemma_ == "be" or result[0].lemma_ == "do":
+			yesNoQuery = True
 
 	#Look for entities based on their main characteristics as the subjects of a sentence
 	for w in result:
-		if w.pos_ == "PROPN" or ((w.ent_type_ == "PERSON" or w.ent_type_ == "ORG") and w.text != "'s"):
-			subject=[]
-			for d in w.subtree:
-				if d.tag_ == "POS":
-					continue
-				subject.append(d.text)
+		if ((w.pos_ == "PROPN" or
+			# What are the parts of a guitar? (guitar = pobj)
+			(w.dep_ == "pobj" and (w.nbor().tag_ != 'IN' and w.nbor(-1).tag_ != 'IN')) or
+			# How many strings does a violin have? (violin = nsubj)
+			(w.dep_ == "nsubj" and w.pos_ != "PRON" and (w.nbor().tag_ != 'IN' and w.nbor(-1).tag_ != 'IN' and w.nbor(-1).pos_ != 'NOUN' and w.nbor(-1).pos_ != 'ADJ')) or
+			(w.ent_type_ == "PERSON" or w.ent_type_ == "ORG" or w.ent_type_ == "WORK_OF_ART")) and w.tag_ != "POS"):
+			subject.append(w.text)
 	entityString = " ".join(subject)
 
 	
 	#Look for property
-	for w in result:	
+	for d in result:	
 	# What is the X of Y// Who is the X of Y // When is the X of Y
 	# What is X's Y // Who is X's Y // When is X's Y
-		if w.lemma_ == 'when':
+		if d.lemma_ == 'when':
 			k = 'date of '
-		if w.lemma_ == 'where':
+		if d.lemma_ == 'where':
 			k = 'place of '
-		if w.pos_ == 'VERB':
-			subject1=[]
-			for d in w.subtree:
-				if ((d.pos_ == 'NOUN' and d.nbor().tag_ == 'IN') or
-					(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'IN') or
-					(d.pos_ == 'NOUN' and d.nbor().pos_ == 'NOUN') or
-					(d.pos_ == 'NOUN' and d.nbor(-1).pos_ == 'NOUN') or
-					(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'POS') or
-					(d.pos_ == 'NOUN' and d.nbor(-1).pos_ == 'ADJ') or
-					(d.pos_ == 'ADJ')):
-					subject1.append(d.lemma_)
-				if d.tag_ == 'IN' and d.nbor().tag_ == 'NN':
-					subject1.append(d.lemma_)
-				if d.pos_ == 'VERB' and (d.lemma_ != 'be' and d.lemma_ != 'do'):
-					subject1.append(k + fixer(d.lemma_))
+		if d.lemma_ == 'how':
+			k = 'manner of '
+		if (d.lemma_ == 'how' and d.nbor().lemma_ == 'many'):
+			k = 'number of '
+
+		if (d.text != entityString):
+			if ((d.pos_ == 'NOUN' and d.nbor().tag_ == 'IN') or
+				(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'IN') or
+				(d.pos_ == 'NOUN' and d.nbor().pos_ == 'NOUN') or
+				(d.pos_ == 'NOUN' and d.nbor(-1).pos_ == 'NOUN') or
+				(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'POS') or
+				(d.pos_ == 'NOUN' and d.nbor(-1).pos_ == 'ADJ') or
+				(d.tag_ == 'IN' and d.nbor().tag_ == 'NN' and d.nbor().text != entityString)):
+				subject1.append(d.text)
+			if d.dep_ == 'ROOT' and (d.lemma_ != 'be' and d.lemma_ != 'do'):
+				subject1.append(k + fixer(d.lemma_))
 	propertyString = " ".join(subject1)
 	
 	
 	# Searching for particular properties based on the query
 	# (some properties need "special handling" with an if-statement,
 	# since they can not be found via a simple search in the wikidata API):
-	if propertyString == "member":
+	if propertyString == "members":
 		propertyString = "has part"
 	if propertyString == "real name":
 		propertyString = "birth name"
 	
 	# Use the same method as before to find answers
-	if(entityString and propertyString):
+	if (entityString and propertyString):
 		createQuery(entityString, propertyString)
 	else:
 		log("Did not find entityString and propertyString")
@@ -162,9 +169,7 @@ def createQuery(ent, prop):
 				log(p['label'])
 				log(query)
 				executeQuery(query, e['id'])
-
-			
-
+	
 # executes a query
 def executeQuery(q, entityID):
 	#define url
