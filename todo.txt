@@ -1,6 +1,6 @@
 Todo
 
-
+- accept input following the nestor guidelines					
 - run test mode all the way 									Gijs
 - from verb to noun bear - birth (nltk)							Stratos
 - similarities ? 												Stratos
@@ -36,6 +36,6 @@ Question types to add:											(George)
 
 
 Questions that should change:
-Which country is Queen from? --> 1 finds no nsubj --> 2 switches subject and property.
+Which country is Queen from? --> analyze() finds no nsubj --> analyzeSecondary() switches subject and property.
 What is the Dutch definition of music --> error -> mabey add ? to questions without
 
