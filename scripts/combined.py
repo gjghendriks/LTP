@@ -71,6 +71,10 @@ def fixer(string):
 		new_string = 'spouse'
 	elif string == 'bury':
 		new_string = 'burial'
+	elif string == 'come':
+		new_string = 'origin'
+	elif string == 'found':
+		new_string = 'foundation'
 	elif string.endswith('e'):
 		new_string = string + 'r'
 	else:
@@ -93,9 +97,9 @@ def analyzeSecondary(result):
 	for w in result:
 		if ((w.pos_ == "PROPN" or
 			# What are the parts of a guitar? (guitar = pobj)
-			(w.dep_ == "pobj" and (w.nbor().tag_ != 'IN' and w.nbor(-1).tag_ != 'IN')) or
+			(w.dep_ == "pobj" and w.nbor().pos_ != 'PROPN' and w.pos_ != "ADV" and w.pos_ != "PRON" and (w.nbor().tag_ != 'IN' and w.nbor(-1).tag_ != 'IN')) or
 			# How many strings does a violin have? (violin = nsubj)
-			(w.dep_ == "nsubj" and w.pos_ != "PRON" and (w.nbor().tag_ != 'IN' and w.nbor(-1).tag_ != 'IN' and w.nbor(-1).pos_ != 'NOUN' and w.nbor(-1).pos_ != 'ADJ')) or
+			(w.dep_ == "nsubj" and w.nbor().pos_ != 'PROPN' and w.pos_ != "PRON" and w.pos_ != "DET" and (w.nbor().tag_ != 'IN' and w.nbor(-1).tag_ != 'IN' and w.nbor(-1).pos_ != 'NOUN' and w.nbor(-1).pos_ != 'ADJ')) or
 			(w.ent_type_ == "PERSON" or w.ent_type_ == "ORG" or w.ent_type_ == "WORK_OF_ART")) and w.tag_ != "POS"):
 			subject.append(w.text)
 	entityString = " ".join(subject)
@@ -109,10 +113,11 @@ def analyzeSecondary(result):
 			k = 'date of '
 		if d.lemma_ == 'where':
 			k = 'place of '
-		if d.lemma_ == 'how':
-			k = 'manner of '
+
 		if (d.lemma_ == 'how' and d.nbor().lemma_ == 'many'):
 			k = 'number of '
+		if (d.lemma_ == 'how' and d.nbor().lemma_ == 'long'):
+			subject1.append('duration')
 
 		if (d.text != entityString):
 			if ((d.pos_ == 'NOUN' and d.nbor().tag_ == 'IN') or
@@ -121,9 +126,11 @@ def analyzeSecondary(result):
 				(d.pos_ == 'NOUN' and d.nbor(-1).pos_ == 'NOUN') or
 				(d.pos_ == 'NOUN' and d.nbor(-1).tag_ == 'POS') or
 				(d.pos_ == 'NOUN' and d.nbor(-1).pos_ == 'ADJ') or
-				(d.tag_ == 'IN' and d.nbor().tag_ == 'NN' and d.nbor().text != entityString)):
-				subject1.append(d.text)
-			if d.dep_ == 'ROOT' and (d.lemma_ != 'be' and d.lemma_ != 'do'):
+				(d.tag_ == 'IN' and d.nbor().tag_ == 'NN' and d.nbor().text != entityString) or
+				(d.pos_ == 'ADJ' and d.lemma_ not in ignorable_adjectives and d.text not in entityString)):
+					if d.text not in k:
+						subject1.append(k + d.text)
+			if d.dep_ == 'ROOT' and (d.lemma_ != 'be' and d.lemma_ != 'do' and d.lemma_ != 'have'):
 				subject1.append(k + fixer(d.lemma_))
 	propertyString = " ".join(subject1)
 	
@@ -135,6 +142,27 @@ def analyzeSecondary(result):
 		propertyString = "has part"
 	if propertyString == "real name":
 		propertyString = "birth name"
+	
+	
+	if not entityString:
+		tempEntity = nlp(propertyString)
+		for word in tempEntity:
+			if word.dep_ == 'ROOT':
+				entityString = word.text
+	
+	if not propertyString:
+		tempProperty = nlp(entityString)
+		for word in tempProperty:
+			if word.pos_ == ('NOUN' or 'PROPN') and word.dep_ != 'ROOT':
+				propertyString = word.text
+	
+	if entityString in propertyString:
+		propertyString = propertyString.replace(entityString, '')
+		
+	if propertyString in entityString:
+		entityString = entityString.replace(propertyString, '')
+	print(entityString)
+	print(propertyString)
 	
 	# Use the same method as before to find answers
 	if (entityString and propertyString):

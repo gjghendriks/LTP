@@ -27,15 +27,15 @@ Heuristics to add:
 
 Question types to add:											(George)
 - What does .. do?
-- Where does .. come from?
+- Where does .. come from?										(George)	in progress
 - album -> has part (From which album is Dancing Queen?)
 - yes/no questions (did ... )
-- how many .. (counting)
+- how many .. (counting)										(George)		DONE
 - Who are the members of the who?
 
 
 
-Questions that should change:
+Questions that should change:									(George)		DONE
 Which country is Queen from? --> analyze() finds no nsubj --> analyzeSecondary() switches subject and property.
 What is the Dutch definition of music --> error -> mabey add ? to questions without
 
