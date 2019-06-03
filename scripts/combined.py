@@ -155,6 +155,7 @@ def analyzeSecondary(result):
 
 # creates and executes query
 # for each entity and property it can find with the find function
+# create a query and execute said query
 def createQuery(ent, prop):
 	ent = find(ent, entParams)
 	prop = find(prop, propParams)
@@ -177,34 +178,38 @@ def executeQuery(q, entityID):
 	log("\nexecuting query . . .\n")
 	# retrieve data in json
 	data = requests.get(SPARQLurl, params={'query': q, 'format': 'json'}).json()
+	# if data is retrieved
 	if(data):
 		answerList = [] 
 		log("data length is = " + str(len(data)))
-		#log(data)
 		# for each answer, append in the answerList
 		for item in data['results']['bindings']:
 			for var in item:
 				if(var == "itemLabel"):
 					log(item[var]['value'])
 					answerList.append(item[var]['value'])
-		#when all answers are found
+					
+		# when all answers to one question are found
 		# make Answer object and check if it does not exists yet
 		a = Answer(answerList, "http://www.wikidata.org/entity/" + str(entityID))
+		
 		# Append the answer if it is not found yet
 		# and only when an answer is found
-
 		log(answerExists(a))
 		log(answerList)
 		if (not answerExists(a)) and  (answerList):
 			log("answer appended")
 			ANSWERS.append(a)
+			
+	#no data retrieved, print error
 	else:
 		print("Found no results to query\nPlease try again\n")
 
-#Checks for existing answers and returns 1 if there are duplicates and 0 if not
+#Checks if the answer is already found by a different analyze or a previous query
 def answerExists(foundItem):
 	# for each answer found so far
 	for item in ANSWERS:
+		# for each label within the answer 
 		for iAnswer in item.label:
 			for answer in foundItem.label:
 				if (answer == iAnswer):
@@ -213,8 +218,8 @@ def answerExists(foundItem):
 	return 0
 
 
-#finds the first corresponding wikidata entity or property
-#TODO use named entitys here ?
+# returns all corresponding wikidata entities or properties
+# TODO use named entitys here ?
 def find(string, params):
 	params['search'] = string
 	json = requests.get(url,params).json()
@@ -233,7 +238,6 @@ def find(string, params):
 
 
 #returns the subject in question
-# not used atm
 def findSubject(question):
 	for w in question:
 		if w.dep_ == "nsubj":
@@ -245,18 +249,17 @@ def findSubject(question):
 
 # finds the noun phrases in question
 # merges them
-# returns the doc
-# TODO: optimize this, by far slowest part of the program
+# returns new doc
 def findNounPhrases(text):
 	log("Finding noun phrases")
-	newdoc = nlp(text)
-	#newdoc = copy.deepcopy(question)
+	newdoc = nlp(text)	# make a new doc
 	for noun_phrase in list(newdoc.noun_chunks):
 		noun_phrase.merge(noun_phrase.root.tag_, noun_phrase.root.lemma_, noun_phrase.root.ent_type_)
 	return newdoc
 	
 # Gijs' version of the analyze
-# tries to analyze the question and construct a query
+# tries to analyze the question using nsubj and pobj
+# then sends the property- and subject strings to createQuery
 def analyze(question, text):
 	subj = ""
 	prop = ""
@@ -276,6 +279,7 @@ def analyze(question, text):
 		return
 
 	# update tokens to capture whole compound noun phrases
+	# instead of only one word
 	nounquestion = findNounPhrases(text)
 	for token in nounquestion:
 		log(token.text)
@@ -283,6 +287,7 @@ def analyze(question, text):
 		if(isinstance(subj, str) and re.search(subj, token.text)):
 			log("broadend match for subj from\t" + subj + "\tto\t" + token.text)
 			subj = token
+		# if token is a prop and found within a broader token, then prop = token
 		if(isinstance(prop, str) and re.search(prop, token.text)):
 			log("broadend match for prop from\t" + prop + "\tto\t" + token.text)
 			prop = token
@@ -295,7 +300,7 @@ def analyze(question, text):
 			log("property has now become " + proptext)
 
 
-	#try to remove the "the" from property text
+	# remove the "the" from property text
 	try:
 		proptext
 	except NameError:
@@ -308,11 +313,11 @@ def analyze(question, text):
 
 	return
 
-
+# Function used to run the test mode
 def testmode():
-	#read in the question file here depending on platform
+	# read in the question file here depending on platform
 	if(platform.system() == "Linux"):
-		filename = """../resources/all_questions_and_answers.tsv"""
+		filename = """resources/all_questions_and_answers.tsv"""
 	else:
 		filename = """resources\\all_questions_and_answers.tsv"""
 		#open file
@@ -323,19 +328,22 @@ def testmode():
 		#	row[1]: URI
 		#	row[2]: Answer
 		# 	row[..]: more answers (check with len(row))
-		questionCount = 0
+		questionCount = 0		# keep track of amount of questions answered so far
+		# for each question/row
 		for row in reader:
 			questionCount += 1
 			if(questionCount > int(TESTAMOUNT)):
+				#stop if we have reached the test amount
 				break;
 			question = row[0]
 			URI = row[1]
 			
-			#analyze each question
+			# analyze each question
 			# print amount of correct
 			doc = nlp(question)
 			analyze(doc, question)
 			analyzeSecondary(doc)
+			# keep tract of recall and precision
 			global CORRECT
 			global TOTAL
 			for item in ANSWERS:
@@ -343,6 +351,7 @@ def testmode():
 				#check if URI is the same
 				if(item.url == URI):
 					CORRECT += 0.5
+					# check if the first answer is the same
 					for answer in item.label:
 						if(answer == row[2]):
 							CORRECT += 0.5
@@ -353,17 +362,18 @@ def testmode():
 		print("From the ", str(TOTAL), " questions, ", CORRECT, " where correct.")
 	
 
+####################
 
 # check for flags
 if(len(sys.argv) > 1):
-	# turn on debug output by the -d flag
+	# turn on debug output with the -d flag
 	if any("-d" in s for s in sys.argv):
 		DEBUG = True
 		print("Debug mode is on")
 	else:
 		print("Debug mode is off")
 	# turn on test mode when -t flag is found
-	# debug is turned off
+	# debug is turned off in test mode
 	if any("-t" in s for s in sys.argv):
 		TESTMODE = True
 		DEBUG = False
@@ -374,22 +384,24 @@ if(len(sys.argv) > 1):
 		print("Testing mode is on")
 
 
-
+# In normal mode
 if(not TESTMODE):
 	printexamples()
 	# search for line/question
 	for line in sys.stdin:
-		text = line.rstrip()						# grab line
-		doc = nlp(text)								#analyse question
+		text = line.rstrip()				# grab line
+		doc = nlp(text)						# make a doc from question
 
-		if(len(doc) > 2):
+		# only grab input that is longer than 1 words
+		# this is done to prevent errors
+		if(len(doc) > 1):
 			# Analyze syntax using Gijs' method
 			analyze(doc, text)
 			
 			#Analyse using secondary method
 			analyzeSecondary(doc)
 		
-			#show each answer
+			# print each answer
 			for item in ANSWERS:
 				item.show()
 			#clean up
