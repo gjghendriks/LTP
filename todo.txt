@@ -32,3 +32,10 @@ Question types to add:											(George)
 - yes/no questions (did ... )
 - how many .. (counting)
 - Who are the members of the who?
+
+
+
+Questions that should change:
+Which country is Queen from? --> 1 finds no nsubj --> 2 switches subject and property.
+What is the Dutch definition of music --> error -> mabey add ? to questions without
+

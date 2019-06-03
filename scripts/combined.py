@@ -23,14 +23,6 @@ TESTAMOUNT = 805	# max amount of questions that will be tested in test mode
 
 #class to store answers url and label together
 class Answer:
-	#def __init__(self, item):
-	#	for var in item :
-	#		if(var == "item"):
-	#			self.url = item[var]['value']
-	#		elif(var == "itemLabel"):
-	#			self.label = item[var]['value']
-
-
 	def __init__(self, labels, url):
 		self.label = labels
 		self.url = url
