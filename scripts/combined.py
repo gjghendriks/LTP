@@ -89,6 +89,7 @@ def analyzeSecondary(result):
 	propertyString = ""
 	subject = []
 	subject1 = []
+	ignorable_adjectives = ['many', 'long']
 	
 	if result[0].lemma_ == "be" or result[0].lemma_ == "do":
 			yesNoQuery = True
@@ -143,13 +144,16 @@ def analyzeSecondary(result):
 	if propertyString == "real name":
 		propertyString = "birth name"
 	
-	
+	# If an entity was mistakenly fethced in the property string
+	# find it, fetch it and fix the property string
 	if not entityString:
 		tempEntity = nlp(propertyString)
 		for word in tempEntity:
 			if word.dep_ == 'ROOT':
 				entityString = word.text
 	
+	# If a property was mistakenly fethced in the entity string
+	# find it, fetch it and fix the entity string
 	if not propertyString:
 		tempProperty = nlp(entityString)
 		for word in tempProperty:
@@ -161,8 +165,6 @@ def analyzeSecondary(result):
 		
 	if propertyString in entityString:
 		entityString = entityString.replace(propertyString, '')
-	print(entityString)
-	print(propertyString)
 	
 	# Use the same method as before to find answers
 	if (entityString and propertyString):
@@ -337,7 +339,7 @@ def analyze(question, text):
 def testmode():
 	# read in the question file here depending on platform
 	if(platform.system() == "Linux"):
-		filename = """resources/all_questions_and_answers.tsv"""
+		filename = """../resources/all_questions_and_answers.tsv"""
 	else:
 		filename = """resources\\all_questions_and_answers.tsv"""
 		#open file
