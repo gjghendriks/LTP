@@ -4,7 +4,7 @@ Todo
 - run test mode all the way 									Gijs
 - from verb to noun bear - birth (nltk)							Stratos
 - similarities ? 												Stratos
-- Add "" functionality for works of art etc.					George
+- Add "" functionality for works of art etc.					George			
 - identify question types to add/answer							George
 - combine our versions 											Stratos			DONE
 - check answers for duplicates/expand analyze					Stratos			DONE
@@ -19,6 +19,7 @@ Todo
 - make test set (+ answers) 									Gijs			DONE
 - fix destruction of doc 										Gijs			DONE
 - Add flags to program for: suprressing/enabling debug output 	Gijs			DONE
+- Make use of advanced search results instead of the API		George			DONE
 - output to file unanswered questions							later
 - Make loading bar/busy sign in interface						optional
 
@@ -27,7 +28,7 @@ Heuristics to add:
 
 Question types to add:											(George)
 - What does .. do?
-- Where does .. come from?										(George)	in progress
+- Where does .. come from?										(George)
 - album -> has part (From which album is Dancing Queen?)
 - yes/no questions (did ... )
 - how many .. (counting)										(George)		DONE

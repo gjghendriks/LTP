@@ -11,9 +11,9 @@ import os
 nlp = spacy.load("en")
 url = 'https://www.wikidata.org/w/api.php' # URL for wikidata
 # parameters to find an entity
-entParams = {'action':'wbsearchentities', 'language':'en', 'format':'json' }		
+entParams = {'action':'query', 'list':'search', 'format':'json', 'srprop':'snippet|titlesnippet'}		
 # paramters to find a property
-propParams = {'action':'wbsearchentities', 'language':'en', 'format':'json', 'type':'property'}
+propParams = {'action':'query', 'list':'search', 'format':'json', 'srprop':'snippet|titlesnippet', 'srnamespace':'120'}
 DEBUG = False		# debug is defaulted to false
 TESTMODE = False 	# test mode is defaulted to false
 ANSWERS = [] 		# list to keep track of all found answers
@@ -94,7 +94,7 @@ def analyzeSecondary(result):
 	if result[0].lemma_ == "be" or result[0].lemma_ == "do":
 			yesNoQuery = True
 
-	#Look for entities based on their main characteristics as the subjects of a sentence
+	#Look for entities based on their main characteristics in the sentence
 	for w in result:
 		if ((w.pos_ == "PROPN" or
 			# What are the parts of a guitar? (guitar = pobj)
@@ -104,6 +104,7 @@ def analyzeSecondary(result):
 			(w.ent_type_ == "PERSON" or w.ent_type_ == "ORG" or w.ent_type_ == "WORK_OF_ART")) and w.tag_ != "POS"):
 			subject.append(w.text)
 	entityString = " ".join(subject)
+	print(entityString)
 
 	
 	#Look for property
@@ -134,6 +135,7 @@ def analyzeSecondary(result):
 			if d.dep_ == 'ROOT' and (d.lemma_ != 'be' and d.lemma_ != 'do' and d.lemma_ != 'have'):
 				subject1.append(k + fixer(d.lemma_))
 	propertyString = " ".join(subject1)
+	print(propertyString)
 	
 	
 	# Searching for particular properties based on the query
@@ -144,7 +146,7 @@ def analyzeSecondary(result):
 	if propertyString == "real name":
 		propertyString = "birth name"
 	
-	# If an entity was mistakenly fethced in the property string
+	# If an entity was mistakenly fetched in the property string
 	# find it, fetch it and fix the property string
 	if not entityString:
 		tempEntity = nlp(propertyString)
@@ -152,7 +154,7 @@ def analyzeSecondary(result):
 			if word.dep_ == 'ROOT':
 				entityString = word.text
 	
-	# If a property was mistakenly fethced in the entity string
+	# If a property was mistakenly fetched in the entity string
 	# find it, fetch it and fix the entity string
 	if not propertyString:
 		tempProperty = nlp(entityString)
@@ -173,25 +175,22 @@ def analyzeSecondary(result):
 		log("Did not find entityString and propertyString")
 	
 
-
-
 # creates and executes query
 # for each entity and property it can find with the find function
-# create a query and execute said query
 def createQuery(ent, prop):
 	ent = find(ent, entParams)
 	prop = find(prop, propParams)
 	if(ent and prop):
 		for e in ent:
 			for p in prop:
-				query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(e['id']) + " wdt:" + str(p['id']) + """ ?item.
+				query = "SELECT ?item ?itemLabel WHERE {wd:"+ str(e['title']) + " wdt:" + str(p['title'].replace("Property:", '')) + """ ?item.
 				SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 				}"""
 				log("\nGenerated following query:")
-				log(e['label'])
-				log(p['label'])
+				log(e['titlesnippet'])
+				log(p['titlesnippet'])
 				log(query)
-				executeQuery(query, e['id'])
+				executeQuery(query, e['title'])
 	
 # executes a query
 def executeQuery(q, entityID):
@@ -243,17 +242,17 @@ def answerExists(foundItem):
 # returns all corresponding wikidata entities or properties
 # TODO use named entitys here ?
 def find(string, params):
-	params['search'] = string
+	params['srsearch'] = string
 	json = requests.get(url,params).json()
-	#log(json['search'])
-	if(json['search']):
-		ent = (json['search'])
+	if(json['query']['search']):
+		ent = (json['query']['search'])
 		for e in ent:
-			if('description' in ent):
-				log("{}\t{}\t{}".format(e['id'], e['label'],e['description']))
+			label = e['titlesnippet'].replace('<span class="searchmatch">', '').replace('</span>', '')
+			if('snippet' in ent):
+				log("{}\t{}\t{}".format(e['title'], label,e['snippet']))
 			else:
-				log("{}\t{}".format(e['id'], e['label']))
-		return ent 
+				log("{}\t{}".format(e['title'], label))
+		return ent
 	else:
 		log("Found no result in wikidata for '" + string +  "'")
 		return False
@@ -413,7 +412,7 @@ if(not TESTMODE):
 	for line in sys.stdin:
 		text = line.rstrip()				# grab line
 		doc = nlp(text)						# make a doc from question
-
+		
 		# only grab input that is longer than 1 words
 		# this is done to prevent errors
 		if(len(doc) > 1):
