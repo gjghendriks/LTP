@@ -1,9 +1,5 @@
 Todo
 
-- clearify README how to run the program						Gijs
-- print if no answer is found									Gijs			DONE
-- fix printing instead of log 									Gijs			DONE
-- accept input following the nestor guidelines					Gijs			DONE
 - run test mode all the way 									Gijs
 - from verb to noun bear - birth (nltk)							Stratos
 - similarities ? 												Stratos
@@ -22,6 +18,10 @@ Todo
 - make test set (+ answers) 									Gijs			DONE
 - fix destruction of doc 										Gijs			DONE
 - Add flags to program for: suprressing/enabling debug output 	Gijs			DONE
+- clearify README how to run the program						Gijs			DONE
+- print if no answer is found									Gijs			DONE
+- fix printing instead of log 									Gijs			DONE
+- accept input following the nestor guidelines					Gijs			DONE
 - Make use of advanced search results instead of the API		George			DONE
 - output to file unanswered questions							later
 - Make loading bar/busy sign in interface						optional
