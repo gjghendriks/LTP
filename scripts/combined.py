@@ -378,7 +378,7 @@ def testmode():
 				if(item.url == URI):
 					CORRECT += 0.5
 					# check if the first answer is the same
-					for answer in item.label:
+					for answer in item.labels:
 						if(answer == row[2]):
 							CORRECT += 0.5
 
