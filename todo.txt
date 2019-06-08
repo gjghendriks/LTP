@@ -1,8 +1,9 @@
 Todo
 
-- print if no answer is found									Gijs
-- fix printing instead of log 									Gijs
-- accept input following the nestor guidelines					Gijs
+- clearify README how to run the program						Gijs
+- print if no answer is found									Gijs			DONE
+- fix printing instead of log 									Gijs			DONE
+- accept input following the nestor guidelines					Gijs			DONE
 - run test mode all the way 									Gijs
 - from verb to noun bear - birth (nltk)							Stratos
 - similarities ? 												Stratos
@@ -40,5 +41,5 @@ Question types to add:											(George)
 
 Questions that should change:									(George)		DONE
 Which country is Queen from? --> analyze() finds no nsubj --> analyzeSecondary() switches subject and property.
-What is the Dutch definition of music --> error -> mabey add ? to questions without
+What is the Dutch definition of music --> error -> mabey add ? to questions without			Gijs			DONE
 

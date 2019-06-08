@@ -14,25 +14,30 @@ url = 'https://www.wikidata.org/w/api.php' # URL for wikidata
 entParams = {'action':'query', 'list':'search', 'format':'json', 'srprop':'snippet|titlesnippet'}		
 # paramters to find a property
 propParams = {'action':'query', 'list':'search', 'format':'json', 'srprop':'snippet|titlesnippet', 'srnamespace':'120'}
-DEBUG = False		# debug is defaulted to false
-TESTMODE = False 	# test mode is defaulted to false
-ANSWERS = [] 		# list to keep track of all found answers
-TOTAL = 0			# keeps track of how many questions are asked
-CORRECT = 0			# keeps track of how many questions are answered correctly
-TESTAMOUNT = 805	# max amount of questions that will be tested in test mode
+DEBUG = False				# debug is defaulted to false
+TESTMODE = False 			# test mode is defaulted to false
+ANSWERS = [] 				# list to keep track of all found answers
+TOTAL = 0					# keeps track of how many questions are asked
+CORRECT = 0					# keeps track of how many questions are answered correctly
+TESTAMOUNT = 805			# max amount of questions that will be tested in test mode
+CURRENTQUESTIONNUMBER = 0	# number of the question that is being answered right now
 
-#class to store answers url and label together
+# class to store answers
+# properties are:
+#	number	: the number of the question
+#	URL 	: the uri/url to the wikidatabase
+# 	labels 	: list of labels (strings) of the answers
 class Answer:
-	def __init__(self, labels, url):
-		self.label = labels
+	def __init__(self, number, url, labels):
+		self.number = number
 		self.url = url
+		self.labels = labels
 
 	def show(self):
-		print(self.url, end = "\t")
-		for item in self.label:
+		print(self.number , "\t", self.url, end = "\t")
+		for item in self.labels:
 			print(item, end = "\t")
 		print("")
-		
 
 
 #used to print output only if the debug is on
@@ -212,7 +217,7 @@ def executeQuery(q, entityID):
 					
 		# when all answers to one question are found
 		# make Answer object and check if it does not exists yet
-		a = Answer(answerList, "http://www.wikidata.org/entity/" + str(entityID))
+		a = Answer(CURRENTQUESTIONNUMBER, "http://www.wikidata.org/entity/" + str(entityID), answerList)
 		
 		# Append the answer if it is not found yet
 		# and only when an answer is found
@@ -231,9 +236,9 @@ def answerExists(foundItem):
 	# for each answer found so far
 	for item in ANSWERS:
 		# for each label within the answer 
-		for iAnswer in item.label:
-			for answer in foundItem.label:
-				if (answer == iAnswer):
+		for iLabel in item.labels:
+			for label in foundItem.labels:
+				if (label == iLabel):
 					log("Answer was already found, not adding it to ANSWERS")
 					return 1
 	return 0
@@ -382,6 +387,30 @@ def testmode():
 
 		print("From the ", str(TOTAL), " questions, ", CORRECT, " where correct.")
 	
+# function for sanitizing the input given
+# also indexes the question number
+def sanitizeInput(line):
+
+	# try to detect number and tab
+	m = re.search("^(\d)*\t", line, re.IGNORECASE)
+	log(m)
+	if m:
+		# detected expression in line, so set current question number
+		global CURRENTQUESTIONNUMBER
+		CURRENTQUESTIONNUMBER = int(m.group(0))
+		log("CURRENTQUESTIONNUMBER = " + str(CURRENTQUESTIONNUMBER))
+		# also need to remove pattern from the line
+		line = re.sub("^(\d)*\t", "", line, re.IGNORECASE)
+		log(line)
+
+	# add ? if this is not at the end of the line.
+	# this is done to prevent errors.
+	if(not line.endswith("?")):
+		log("appending question mark at the end of question")
+		line += "?"	
+
+	return line
+
 
 ####################
 
@@ -411,11 +440,7 @@ if(not TESTMODE):
 	# search for line/question
 	for line in sys.stdin:
 		text = line.rstrip()				# grab line
-		# add ? if this is not at the end of the line.
-		# this is done to prevent errors.
-		if(not text.endswith("?")):
-			log("appending question mark at the end of question")
-			text += "?"	
+		text = sanitizeInput(text)			# sanitize the input
 		doc = nlp(text)						# make a doc from question
 		
 		# only grab input that is longer than 1 words
