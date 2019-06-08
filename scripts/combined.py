@@ -411,22 +411,33 @@ if(not TESTMODE):
 	# search for line/question
 	for line in sys.stdin:
 		text = line.rstrip()				# grab line
+		# add ? if this is not at the end of the line.
+		# this is done to prevent errors.
+		if(not text.endswith("?")):
+			log("appending question mark at the end of question")
+			text += "?"	
 		doc = nlp(text)						# make a doc from question
 		
 		# only grab input that is longer than 1 words
 		# this is done to prevent errors
-		if(len(doc) > 1):
+		if(len(doc) > 2):
+
+
 			# Analyze syntax using Gijs' method
 			analyze(doc, text)
 			
 			#Analyse using secondary method
 			analyzeSecondary(doc)
-		
-			# print each answer
-			for item in ANSWERS:
-				item.show()
-			#clean up
-			ANSWERS.clear()
+			
+			# found no answers
+			if(not ANSWERS):
+				print("Found no answer(s) to the question you asked, sorry!");
+			else:
+				# print each answer
+				for item in ANSWERS:
+					item.show()
+				#clean up
+				ANSWERS.clear()
 		else:
 			print("Question is too short")
 
