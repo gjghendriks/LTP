@@ -1,6 +1,8 @@
 Todo
 
-- accept input following the nestor guidelines					
+- print if no answer is found									Gijs
+- fix printing instead of log 									Gijs
+- accept input following the nestor guidelines					Gijs
 - run test mode all the way 									Gijs
 - from verb to noun bear - birth (nltk)							Stratos
 - similarities ? 												Stratos
