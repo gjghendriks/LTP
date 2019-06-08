@@ -104,7 +104,7 @@ def analyzeSecondary(result):
 			(w.ent_type_ == "PERSON" or w.ent_type_ == "ORG" or w.ent_type_ == "WORK_OF_ART")) and w.tag_ != "POS"):
 			subject.append(w.text)
 	entityString = " ".join(subject)
-	print(entityString)
+	log(entityString)
 
 	
 	#Look for property
@@ -135,7 +135,7 @@ def analyzeSecondary(result):
 			if d.dep_ == 'ROOT' and (d.lemma_ != 'be' and d.lemma_ != 'do' and d.lemma_ != 'have'):
 				subject1.append(k + fixer(d.lemma_))
 	propertyString = " ".join(subject1)
-	print(propertyString)
+	log(propertyString)
 	
 	
 	# Searching for particular properties based on the query
