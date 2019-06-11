@@ -99,9 +99,11 @@ def fixer(string, QUESTION_TYPE):
 		new_string = 'dissolution'
 	elif string == 'start' and QUESTION_TYPE == 'TIME':
 		new_string = 'start time' # work period (start) (P2031)
+	elif string == 'start' and QUESTION_TYPE == 'THING':
+		new_string = 'origin'
 	elif (string == 'compose' or string == 'write') and QUESTION_TYPE == 'TIME':
 		new_string = 'publication'
-	elif string == 'release' or (string == 'publish' and (QUESTION_TYPE == 'TIME' or QUESTION_TYPE == 'PLACE')):
+	elif string == 'release' or (string == 'publish' and (QUESTION_TYPE == 'TIME' or QUESTION_TYPE == 'PLACE' or QUESTION_TYPE == 'THING')):
 		new_string = 'publication'
 	elif string == 'educate' and QUESTION_TYPE == 'PLACE':
 		new_string = 'P69' # educated at (P69)
@@ -111,10 +113,10 @@ def fixer(string, QUESTION_TYPE):
 		new_string = 'held '
 	elif string == 'hold' and QUESTION_TYPE == 'TIME':
 		new_string = 'start '
+	elif string == 'hold' and QUESTION_TYPE == 'THING':
+		new_string = ''
 	elif string == 'live' and QUESTION_TYPE == 'PLACE':
 		new_string = 'residence'
-	elif string == 'release':
-		new_string = 'publication'
 	elif string == 'marry':
 		new_string = 'spouse'
 	elif string == 'bury':
@@ -123,7 +125,7 @@ def fixer(string, QUESTION_TYPE):
 		new_string = 'origin'
 	elif string == 'sing':
 		new_string = 'performer'
-	elif string == 'found' and (QUESTION_TYPE == 'PLACE' or QUESTION_TYPE == 'TIME'):
+	elif string == 'found' and (QUESTION_TYPE == 'PLACE' or QUESTION_TYPE == 'TIME' or QUESTION_TYPE == 'THING'):
 		new_string = 'foundation'
 	elif (string == 'create' and QUESTION_TYPE == 'PERSON'):
 		new_string = 'creator'
@@ -161,7 +163,26 @@ def analyzeSecondary(result):
 	
 	# PREPOSITION FIRST/LAST QUESTIONS
 	if firstWord.dep_ == "prep" or lastWord.dep_ == "prep":
-		log('PREP!')
+		QUESTION_TYPE = 'THING'
+		
+		# In/From which/what X is/do Y (VERB)?
+		for w in result:
+			if w.lemma_ == 'be' or w.lemma_ == 'do':
+				for p in w.nbor(-1).subtree:
+					if p.lemma_ != 'which' and p.lemma_ != 'what':
+						property_.append(p.text)
+				for e in w.nbor().subtree:
+					entity.append(e.text)
+		
+		for w in result:
+			if w.pos_ == 'NOUN' or w.pos_ == 'PROPN':
+				if w.text not in entity and w.text not in property_:
+					entity.append(w.text)
+					
+			if w.pos_ == 'VERB' and  w.lemma_ != 'be' and w.lemma_ != 'do':
+				property_.append(fixer(w.lemma_, QUESTION_TYPE))
+			
+					
 	
 	# WHO QUESTIONS:
 	if firstWord.lemma_ == "who":
@@ -235,7 +256,7 @@ def analyzeSecondary(result):
 		if whatIsY == True:
 			for chunk in noun_chunks:
 				for word in chunk:
-					if word.dep_ != 'det' and word.lemma_ != 'what' and word.lemma_ != 'which':
+					if word.dep_ != 'det' and word.lemma_ != 'what' and word.lemma_ != 'which' and word.text not in entity and word.text not in property_:
 						entity.append(word.text)
 		
 		for w in result:
@@ -264,7 +285,7 @@ def analyzeSecondary(result):
 					if p.dep_ != 'nmod' and p.pos_ != 'DET' and p.pos_ != 'PROPN' and p.text != "\'s" and p.text != "\'" and p.text not in property_ and p.text not in entity:
 						property_.append(p.text)
 						
-			if (w.dep_ == 'nsubj' or w.dep_ == 'nsubjpass' or  w.dep_ == 'attr')  and w.pos_ == 'PROPN':
+			if (w.dep_ == 'nsubj' or w.dep_ == 'nsubjpass' or  w.dep_ == 'attr')  and w.pos_ == 'PROPN' and w.text not in property_:
 				entity_subtree = w.subtree
 									
 			# What X (dobj) does Y(nsubj|PROPN) do? - e.g. What genres does Toto play?
@@ -528,6 +549,8 @@ def analyzeSecondary(result):
 	# since they can not be found via a simple search in the wikidata API):
 	if propertyString == "members":
 		propertyString = "has part (P527)"
+	if 'city ' in propertyString:
+		propertyString = propertyString.replace('city', 'place')
 	if propertyString == "place ":
 		propertyString = "location (P276)"
 	if propertyString == "tall":
@@ -566,6 +589,10 @@ def analyzeSecondary(result):
 			createYesNoQuery(entityString, propertyString, entity2String)
 	else:
 		log("Did not find entityString and propertyString")
+
+	#print('FINALentity: ', entityString)
+	#print('FINALproperty: ', propertyString)
+	#print('FINALentity2: ', entity2String)
 
 # creates and executes query
 # for each entity and property it can find with the find function
