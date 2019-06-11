@@ -161,7 +161,7 @@ def analyzeSecondary(result):
 	
 	# PREPOSITION FIRST/LAST QUESTIONS
 	if firstWord.dep_ == "prep" or lastWord.dep_ == "prep":
-		print('PREP!')
+		log('PREP!')
 	
 	# WHO QUESTIONS:
 	if firstWord.lemma_ == "who":
@@ -833,11 +833,13 @@ def testmode():
 				break;
 			question = row[0]
 			URI = row[1]
-			
+			text = question
 			# analyze each question
 			# print amount of correct
-			doc = nlp(question)
-			analyze(doc, question)
+			text = sanitizeInput(text)			# sanitize the input
+			text = convertSentence(text)
+			doc = nlp(text)
+			analyze(doc, text)
 			analyzeSecondary(doc)
 			# keep tract of recall and precision
 			global CORRECT
@@ -931,7 +933,7 @@ if(not TESTMODE):
 			
 			# found no answers
 			if(not ANSWERS):
-				print("Found no answer(s) to the question you asked, sorry!");
+				print(CURRENTQUESTIONNUMBER,"\tFound no answer(s) to the question you asked, sorry!");
 			else:
 				# print each answer
 				for item in ANSWERS[:1]:
