@@ -50,16 +50,16 @@ def log(s):
 def printexamples():
   print("""
 Example questions are:
-	What is the birth date of Dave Grohl?
-	The birth date of Dave Grohl was when?
-	What are the parts of guitar?
-	What are the genres of tame impala?
-	What is the birth name of Freddy mercury?
-	What was the cause of death of Michael Jackson?
-	What was the country of origin of intergalactic lovers?
-	When was the date of death of mozart?
-	What is the official website of Foals?
-	What is the birth place of B. B. King?
+1	What is the birthdate of Eminem?
+2	From which album is Dancing Queen? 
+3	What is the birth name of Dave Grohl? 
+4	When was Lovely Day by Bill Withers released?
+5	What are Michael Jackson's causes of death? 
+6	What country is Kraftwerk from?
+7	Did Mozart play on violin?
+8	How many children does Chris Martin have?
+9	In what genres does Taylor Swift perform?
+10	Stewart Copeland was the drummer with which band?
 """)
 
 def convertSentence(text):
@@ -89,8 +89,10 @@ def convertSentence(text):
 #When given some input, it links it to the closest WikiData potential synonym
 def fixer(string, QUESTION_TYPE):
 	new_string = ''
-	if (string == 'die' or string == 'pass'):
+	if (string == 'die' or string == 'pass') and QUESTION_TYPE != 'THING':
 		new_string = 'death'
+	elif (string == 'die' or string == 'pass') and QUESTION_TYPE == 'THING':
+		new_string = 'cause of death'
 	elif string == 'kill' and QUESTION_TYPE == 'TIME':
 		new_string = 'death'
 	elif string == 'take' and (QUESTION_TYPE == 'PLACE' or QUESTION_TYPE == 'TIME'):
@@ -109,6 +111,8 @@ def fixer(string, QUESTION_TYPE):
 		new_string = 'P69' # educated at (P69)
 	elif string == 'bear':
 		new_string = 'birth'
+	elif string == 'perform' and QUESTION_TYPE == 'THING':
+		new_string = ''
 	elif string == 'hold' and QUESTION_TYPE == 'PLACE':
 		new_string = 'held '
 	elif string == 'hold' and QUESTION_TYPE == 'TIME':
@@ -148,9 +152,7 @@ def analyzeSecondary(result):
 	entity2String = ""
 	subject = []
 	subject1 = []
-	ignorable_adjectives = ['many', 'long']
 	
-	#NEW VARIABLES
 	entity = []
 	property_ = []
 	entity2 = []
@@ -159,7 +161,6 @@ def analyzeSecondary(result):
 
 
 	#Look for entities based on their main characteristics in the sentence
-	
 	
 	# PREPOSITION FIRST/LAST QUESTIONS
 	if firstWord.dep_ == "prep" or lastWord.dep_ == "prep":
@@ -172,7 +173,8 @@ def analyzeSecondary(result):
 					if p.lemma_ != 'which' and p.lemma_ != 'what':
 						property_.append(p.text)
 				for e in w.nbor().subtree:
-					entity.append(e.text)
+					if e.dep_ != 'VERB':
+						entity.append(e.text)
 		
 		for w in result:
 			if w.pos_ == 'NOUN' or w.pos_ == 'PROPN':
@@ -181,8 +183,7 @@ def analyzeSecondary(result):
 					
 			if w.pos_ == 'VERB' and  w.lemma_ != 'be' and w.lemma_ != 'do':
 				property_.append(fixer(w.lemma_, QUESTION_TYPE))
-			
-					
+						
 	
 	# WHO QUESTIONS:
 	if firstWord.lemma_ == "who":
@@ -265,11 +266,6 @@ def analyzeSecondary(result):
 			if w.text == 'the':
 				if w.head.dep_ == 'nsubj':
 					property_subtree = w.head.subtree
-			
-			#if (w.dep_ == 'nsubj' or w.dep_ == 'nsubjpass') and w.pos_ != 'PROPN' and w.lemma_ != 'what' and w.lemma_ != 'which':
-			#	if w.nbor().pos_ == 'VERB' and (w.nbor().lemma_ != 'be' and w.nbor().lemma_ != 'do'):
-			#		entity.append(w.text)
-			#	property_subtree = w.subtree
 	
 			if (w.pos_ == 'PROPN' and w.dep_ != 'compound'):
 				for e in w.subtree:
@@ -293,25 +289,6 @@ def analyzeSecondary(result):
 				for p in w.subtree:
 					if p.dep_ != 'det' and (p.text not in entity and p.text not in property_):
 						property_.append(p.text)
-						
-			# What X (nsubj) VERB Y (dobj/PROPN)? -e.g What record label produced The College Dropout?
-			#if w.dep_ == 'dobj' and w.pos_ == 'PROPN':
-			#	for e in w.subtree:
-			#		print(e.text)
-			#		if e.dep_ != 'det' and e.text not in entity:
-			#			entity.append(e.text)
-			
-			# What VERB/ROOT Y? -> e.g. What killed Elvis Presley? (Cause of death)
-			
-			# What kind ->
-			
-			# What album is X from-> part of?
-			
-			# What music -> genre
-			
-			# What is a trombone made of?
-			
-			# What is the X of the Y of Z
 
 		for e in entity_subtree:
 			if e.dep_ != 'prep' and e.text not in entity:
@@ -539,11 +516,6 @@ def analyzeSecondary(result):
 	propertyString = " ".join(property_)
 	entity2String = " ".join(entity2)
 	
-	#print('entity: ', entityString)
-	#print('property: ', propertyString)
-	#print('entity2: ', entity2String)
-	
-	
 	# Searching for particular properties based on the query
 	# (some properties need "special handling" with an if-statement,
 	# since they can not be found via a simple search in the wikidata API):
@@ -567,7 +539,6 @@ def analyzeSecondary(result):
 		propertyString = propertyString.replace('home', 'origin')
 	if propertyString == "band" or propertyString == "bandss" or ("group" in propertyString) or propertyString == "album":
 		propertyString = "(P463) (P361)" #member of (P463) & part of (P361)
-
 	
 	# Use the same method as before to find answers
 	if (entityString and propertyString and not entity2String):
@@ -589,10 +560,6 @@ def analyzeSecondary(result):
 			createYesNoQuery(entityString, propertyString, entity2String)
 	else:
 		log("Did not find entityString and propertyString")
-
-	#print('FINALentity: ', entityString)
-	#print('FINALproperty: ', propertyString)
-	#print('FINALentity2: ', entity2String)
 
 # creates and executes query
 # for each entity and property it can find with the find function
@@ -666,9 +633,6 @@ def createCountQuery(ent, prop):
 				log(e['titlesnippet'])
 				log(p['titlesnippet'])
 				log(query)
-				#for word in bias:
-					#if word in e['snippet']:
-					#	executeQuery(query, e['title'])
 				executeQuery(query, e['title'])
 	
 # executes a query
@@ -685,7 +649,7 @@ def executeQuery(q, entityID):
 		# for each answer, append in the answerList
 		for item in data['results']['bindings']:
 			for var in item:
-				if(var == "itemLabel"):
+				if(var == "itemLabel" or var == "count"):
 					log(item[var]['value'])
 					answerList.append(item[var]['value'])
 					
@@ -951,9 +915,6 @@ if(not TESTMODE):
 		# only grab input that is longer than 1 words
 		# this is done to prevent errors
 		if(len(doc) > 2):
-
-			# Analyze syntax using Gijs' method
-			#analyze(doc, text)
 			
 			#Analyse using secondary method
 			analyzeSecondary(doc)
